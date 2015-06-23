@@ -1,6 +1,6 @@
 # hubot-reload-scripts
 
-[![](https://img.shields.io/npm/v/npm.svg?style=flat-square)](https://www.npmjs.com/package/hubot-reload-scripts)
+[![](https://img.shields.io/npm/v/hubot-reload-scripts.svg?style=flat-square)](https://www.npmjs.com/package/hubot-reload-scripts)
 
 Reloads scripts without restart. Loads new scripts too. (a fork version that works perfectly)
 
