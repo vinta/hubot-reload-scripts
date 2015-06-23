@@ -20,7 +20,7 @@ Then add **hubot-reload-scripts** to your `external-scripts.json`:
 ]
 ```
 
-## Sample Interaction
+## Usage
 
 ```
 user>> hubot reload
