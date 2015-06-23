@@ -87,4 +87,5 @@ reloadAllScripts = (msg, success, error) ->
             error "Error parsing JSON data from external-scripts.json: #{err}"
           robot.loadExternalScripts scripts
           return
+
   success(msg)
