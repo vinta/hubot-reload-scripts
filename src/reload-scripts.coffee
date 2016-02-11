@@ -41,7 +41,7 @@ success = (msg) ->
 # ref: https://github.com/srobroek/hubot/blob/e543dff46fba9e435a352e6debe5cf210e40f860/src/robot.coffee
 deleteScriptCache = (scriptsBaseDir) ->
   if Fs.existsSync(scriptsBaseDir)
-    for file in Fs.readdirSync(scriptsBaseDir).sort()
+    for file in Fs.readdirSync(scriptsBaseDir).sort() when file.substring(0,1) != '.'
       full = Path.join scriptsBaseDir, file
       if require.cache[require.resolve(full)]
         try
