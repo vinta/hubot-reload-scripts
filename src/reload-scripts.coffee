@@ -16,7 +16,7 @@ oldListeners = null
 
 module.exports = (robot) ->
 
-  robot.respond /reload/i, (msg) ->
+  robot.respond /reload/i, id:'reload-scripts.reload',  (msg) ->
     try
       oldCommands = robot.commands
       oldListeners = robot.listeners
