@@ -7,6 +7,7 @@
 # Author:
 #   spajus
 #   vinta
+#   m-seldin
 
 Fs       = require 'fs'
 Path     = require 'path'
@@ -30,62 +31,88 @@ module.exports = (robot) ->
       console.log "Hubot reloader:", error
       msg.send "Could not reload all scripts: #{error}"
 
-success = (msg) ->
-  # Cleanup old listeners and help
-  for listener in oldListeners
-    listener = {}
-  oldListeners = null
-  oldCommands = null
-  msg.send "Reloaded all scripts"
+  success = (msg) ->
+    # Cleanup old listeners and help
+    for listener in oldListeners
+      listener = {}
+    oldListeners = null
+    oldCommands = null
+    msg.send "Reloaded all scripts"
 
-# ref: https://github.com/srobroek/hubot/blob/e543dff46fba9e435a352e6debe5cf210e40f860/src/robot.coffee
-deleteScriptCache = (scriptsBaseDir) ->
-  if Fs.existsSync(scriptsBaseDir)
-    for file in Fs.readdirSync(scriptsBaseDir).sort() when file.substring(0,1) != '.'
-      full = Path.join scriptsBaseDir, file
-      if require.cache[require.resolve(full)]
-        try
-          cacheobj = require.resolve(full)
-          console.log "Invalidate require cache for #{cacheobj}"
-          delete require.cache[cacheobj]
-        catch error
-          console.log "Unable to invalidate #{cacheobj}: #{error.stack}"
 
-reloadAllScripts = (msg, success, error) ->
-  robot = msg.robot
-  robot.emit('reload_scripts')
+  walkSync = (dir, filelist) ->
+    #walk through given directory and collect files
+    files = Fs.readdirSync(dir)
+    filelist = filelist || []
+    for file in files
+      fullPath = Path.join(dir,file)
+      robot.logger.debug "Scanning file : #{fullPath}"
 
-  scriptsPath = Path.resolve ".", "scripts"
-  deleteScriptCache scriptsPath
-  robot.load scriptsPath
+      if (Fs.statSync(fullPath).isDirectory())
+        filelist = walkSync(fullPath, filelist)
+      else
+        #add full path file to returning collection
+        filelist.push(fullPath)
+    return filelist
 
-  scriptsPath = Path.resolve ".", "src", "scripts"
-  deleteScriptCache scriptsPath
-  robot.load scriptsPath
+  # ref: https://github.com/srobroek/hubot/blob/e543dff46fba9e435a352e6debe5cf210e40f860/src/robot.coffee
+  deleteScriptCache = (scriptsBaseDir) ->
+    if Fs.existsSync(scriptsBaseDir)
+      fileList = walkSync scriptsBaseDir
 
-  hubotScripts = Path.resolve ".", "hubot-scripts.json"
-  Fs.exists hubotScripts, (exists) ->
-    if exists
-      Fs.readFile hubotScripts, (err, data) ->
-        if data.length > 0
+      for file in fileList.sort()
+        robot.logger.debug "file: #{file}"
+        if require.cache[require.resolve(file)]
           try
-            scripts = JSON.parse data
-            scriptsPath = Path.resolve "node_modules", "hubot-scripts", "src", "scripts"
-            robot.loadHubotScripts scriptsPath, scripts
-          catch err
-            error "Error parsing JSON data from hubot-scripts.json: #{err}"
+            cacheobj = require.resolve(file)
+            console.log "Invalidate require cache for #{cacheobj}"
+            delete require.cache[cacheobj]
+          catch error
+            console.log "Unable to invalidate #{cacheobj}: #{error.stack}"
+    robot.logger.debug "Finished deleting script cache!"
+
+  reloadAllScripts = (msg, success, error) ->
+    robot = msg.robot
+    robot.emit('reload_scripts')
+
+    robot.logger.debug "Deleting script cache..."
+
+    scriptsPath = Path.resolve ".", "scripts"
+    deleteScriptCache scriptsPath
+    robot.load scriptsPath
+
+    scriptsPath = Path.resolve ".", "src", "scripts"
+    deleteScriptCache scriptsPath
+    robot.load scriptsPath
+
+    robot.logger.debug "Loading hubot scripts..."
+
+    hubotScripts = Path.resolve ".", "hubot-scripts.json"
+    Fs.exists hubotScripts, (exists) ->
+      if exists
+        Fs.readFile hubotScripts, (err, data) ->
+          if data.length > 0
+            try
+              scripts = JSON.parse data
+              scriptsPath = Path.resolve "node_modules", "hubot-scripts", "src", "scripts"
+              robot.loadHubotScripts scriptsPath, scripts
+            catch err
+              error "Error parsing JSON data from hubot-scripts.json: #{err}"
+              return
+
+    robot.logger.debug "Loading hubot external scripts..."
+
+    externalScripts = Path.resolve ".", "external-scripts.json"
+    Fs.exists externalScripts, (exists) ->
+      if exists
+        Fs.readFile externalScripts, (err, data) ->
+          if data.length > 0
+            try
+              scripts = JSON.parse data
+            catch err
+              error "Error parsing JSON data from external-scripts.json: #{err}"
+            robot.loadExternalScripts scripts
             return
+    robot.logger.debug "step 5"
 
-  externalScripts = Path.resolve ".", "external-scripts.json"
-  Fs.exists externalScripts, (exists) ->
-    if exists
-      Fs.readFile externalScripts, (err, data) ->
-        if data.length > 0
-          try
-            scripts = JSON.parse data
-          catch err
-            error "Error parsing JSON data from external-scripts.json: #{err}"
-          robot.loadExternalScripts scripts
-          return
-
-  success(msg)
+    success(msg)
