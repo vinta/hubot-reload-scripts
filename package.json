@@ -17,8 +17,7 @@
     "hubot": "2.x"
   },
   "devDependencies": {
-    "coffee-script": "1.9.x",
-    "hubot": "2.x"
+    "coffee-script": "1.9.x"
   },
   "main": "index.coffee"
 }
