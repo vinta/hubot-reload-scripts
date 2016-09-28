@@ -1,7 +1,7 @@
 {
   "name": "hubot-reload-scripts",
-  "description": "Reloads scripts without restart. Loads new scripts too. (a fork version that works perfectly)",
-  "version": "0.1.2",
+  "description": "Reloads scripts without restart. Loads new scripts too. (a fork version that works perfectly with some more fixes)",
+  "version": "0.1.4",
   "author": "Vinta Chen <vinta.chen@gmail.com> (http://vinta.ws/)",
   "license": "MIT",
   "keywords": "hubot, hubot reload, hubot load, hubot scripts, hubot scripting",
@@ -17,8 +17,7 @@
     "hubot": "2.x"
   },
   "devDependencies": {
-    "coffee-script": "1.9.x",
-    "hubot": "2.x"
+    "coffee-script": "1.9.x"
   },
   "main": "index.coffee"
 }
