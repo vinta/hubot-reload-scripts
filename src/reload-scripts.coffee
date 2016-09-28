@@ -102,13 +102,24 @@ module.exports = (robot) ->
 
     robot.logger.debug "Loading hubot external scripts..."
 
+    robot.logger.debug "Deleting cache for apppulsemobile"
+    deleteScriptCache Path.resolve ".","node_modules","hubot-apppulsemobile","src"
+
     externalScripts = Path.resolve ".", "external-scripts.json"
     Fs.exists externalScripts, (exists) ->
       if exists
         Fs.readFile externalScripts, (err, data) ->
           if data.length > 0
             try
+              robot.logger.debug "DATA : #{data}"
               scripts = JSON.parse data
+
+              if scripts instanceof Array
+                for pkg in scripts
+                  scriptPath = Path.resolve ".","node_modules",pkg,"src"
+                  robot.logger.debug "Deleting cache for #{pkg}"
+                  robot.logger.debug "Path : #{scripts}"
+                  deleteScriptCache scriptPath
             catch err
               error "Error parsing JSON data from external-scripts.json: #{err}"
             robot.loadExternalScripts scripts
