@@ -24,6 +24,9 @@ module.exports = (robot) ->
 
       robot.commands = []
       robot.listeners = []
+      if (robot.middleware)
+        for key in Object.keys robot.middleware
+          robot.middleware[key].stack = []
 
       reloadAllScripts msg, success, (err) ->
         msg.send err
